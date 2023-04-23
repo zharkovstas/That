@@ -13,4 +13,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="That.Analyzers.Tests" />
+  </ItemGroup>
+
 </Project>

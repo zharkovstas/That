@@ -21,7 +21,7 @@ public partial class AssertTests
 
         Assert.That(
             exception.Message == "Expectation failed",
-            $"exception.Message; Expected: {"Expectation failed"}; But was: {exception.Message}");
+            $"exception.Message; Expected: Expectation failed; But was: {exception.Message}");
     }
 
     public void That_Boolean_String_GivenTrue_DoesNotThrow()
@@ -37,6 +37,6 @@ public partial class AssertTests
 
         Assert.That(
             exception.Message == "Earth is flat",
-            $"exception.Message; Expected: {"Earth is flat"}; But was: {exception.Message}");
+            $"exception.Message; Expected: Earth is flat; But was: {exception.Message}");
     }
 }

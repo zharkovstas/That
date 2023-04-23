@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -70,23 +69,29 @@ public class SpecifyAssertionMessageCodeFix : CodeFixProvider
             switch ((SyntaxKind)binaryExpression.RawKind)
             {
                 case SyntaxKind.EqualsExpression:
-                    return CreateInterpolatedMessage(
-                        binaryExpression.Left,
-                        binaryExpression.Right,
-                        expectedModifier: null);
+                    return new InterpolatedStringBuilder()
+                        .AppendSyntaxAsText(binaryExpression.Left)
+                        .AppendText("; Expected: ")
+                        .AppendExpression(binaryExpression.Right)
+                        .AppendText("; But was: ")
+                        .AppendExpression(binaryExpression.Left);
                 case SyntaxKind.NotEqualsExpression:
-                    return CreateInterpolatedMessage(
-                        binaryExpression.Left,
-                        binaryExpression.Right,
-                        expectedModifier: "not");
+                    return new InterpolatedStringBuilder()
+                        .AppendSyntaxAsText(binaryExpression.Left)
+                        .AppendText("; Expected: not ")
+                        .AppendExpression(binaryExpression.Right)
+                        .AppendText("; But was: ")
+                        .AppendExpression(binaryExpression.Left);
                 case SyntaxKind.LessThanExpression:
                 case SyntaxKind.LessThanOrEqualExpression:
                 case SyntaxKind.GreaterThanExpression:
                 case SyntaxKind.GreaterThanOrEqualExpression:
-                    return CreateInterpolatedMessage(
-                        binaryExpression.Left,
-                        binaryExpression.Right,
-                        expectedModifier: binaryExpression.OperatorToken.ToString());
+                    return new InterpolatedStringBuilder()
+                        .AppendSyntaxAsText(binaryExpression.Left)
+                        .AppendText($"; Expected: {binaryExpression.OperatorToken} ")
+                        .AppendExpression(binaryExpression.Right)
+                        .AppendText("; But was: ")
+                        .AppendExpression(binaryExpression.Left);
                 default:
                     break;
             }
@@ -97,9 +102,10 @@ public class SpecifyAssertionMessageCodeFix : CodeFixProvider
             switch ((SyntaxKind)prefixUnaryExpression.RawKind)
             {
                 case SyntaxKind.LogicalNotExpression:
-                    return LiteralExpression(
-                        SyntaxKind.StringLiteralExpression,
-                        Literal($"Expected: {prefixUnaryExpression.Operand.WithoutTrivia()} to be false"));
+                    return new InterpolatedStringBuilder()
+                        .AppendText("Expected: ")
+                        .AppendSyntaxAsText(prefixUnaryExpression.Operand)
+                        .AppendText(" to be false");
                 default:
                     break;
             }
@@ -117,25 +123,33 @@ public class SpecifyAssertionMessageCodeFix : CodeFixProvider
                 {
                     case nameof(object.Equals):
                     case nameof(Enumerable.SequenceEqual):
-                        return CreateInterpolatedMessage(
-                            memberAccessExpression.Expression,
-                            firstArgumentExpression,
-                            expectedModifier: null);
+                        return new InterpolatedStringBuilder()
+                            .AppendSyntaxAsText(memberAccessExpression.Expression)
+                            .AppendText("; Expected: ")
+                            .AppendExpression(firstArgumentExpression)
+                            .AppendText("; But was: ")
+                            .AppendExpression(memberAccessExpression.Expression);
                     case nameof(string.StartsWith):
-                        return CreateInterpolatedMessage(
-                            memberAccessExpression.Expression,
-                            firstArgumentExpression,
-                            expectedModifier: "starts with");
+                        return new InterpolatedStringBuilder()
+                            .AppendSyntaxAsText(memberAccessExpression.Expression)
+                            .AppendText("; Expected: starts with ")
+                            .AppendExpression(firstArgumentExpression)
+                            .AppendText("; But was: ")
+                            .AppendExpression(memberAccessExpression.Expression);
                     case nameof(string.EndsWith):
-                        return CreateInterpolatedMessage(
-                            memberAccessExpression.Expression,
-                            firstArgumentExpression,
-                            expectedModifier: "ends with");
+                        return new InterpolatedStringBuilder()
+                            .AppendSyntaxAsText(memberAccessExpression.Expression)
+                            .AppendText("; Expected: ends with ")
+                            .AppendExpression(firstArgumentExpression)
+                            .AppendText("; But was: ")
+                            .AppendExpression(memberAccessExpression.Expression);
                     case nameof(string.Contains):
-                        return CreateInterpolatedMessage(
-                            memberAccessExpression.Expression,
-                            firstArgumentExpression,
-                            expectedModifier: "contains");
+                        return new InterpolatedStringBuilder()
+                            .AppendSyntaxAsText(memberAccessExpression.Expression)
+                            .AppendText("; Expected: contains ")
+                            .AppendExpression(firstArgumentExpression)
+                            .AppendText("; But was: ")
+                            .AppendExpression(memberAccessExpression.Expression);
                     default:
                         break;
                 }
@@ -145,9 +159,9 @@ public class SpecifyAssertionMessageCodeFix : CodeFixProvider
                 switch (memberAccessExpression.Name.ToString())
                 {
                     case nameof(Enumerable.Any):
-                        return LiteralExpression(
-                            SyntaxKind.StringLiteralExpression,
-                            Literal($"{memberAccessExpression.Expression}; Expected: not <empty>; But was: <empty>"));
+                        return new InterpolatedStringBuilder()
+                            .AppendSyntaxAsText(memberAccessExpression.Expression)
+                            .AppendText("; Expected: not <empty>; But was: <empty>");
                     default:
                         break;
                 }
@@ -156,65 +170,16 @@ public class SpecifyAssertionMessageCodeFix : CodeFixProvider
 
         if (condition is IsPatternExpressionSyntax isPatternExpression)
         {
-            return CreateInterpolatedMessage(
-                isPatternExpression.Expression,
-                isPatternExpression.Pattern,
-                expectedModifier: null
-            );
+            return new InterpolatedStringBuilder()
+                .AppendSyntaxAsText(isPatternExpression.Expression)
+                .AppendText("; Expected: ")
+                .AppendSyntaxAsText(isPatternExpression.Pattern)
+                .AppendText("; But was: ")
+                .AppendExpression(isPatternExpression.Expression);
         }
 
-        return LiteralExpression(
-            SyntaxKind.StringLiteralExpression,
-            Literal($"Expected: {condition.WithoutTrivia()}"));
-    }
-
-    private static InterpolatedStringExpressionSyntax CreateInterpolatedMessage(
-        ExpressionSyntax actualExpression,
-        ExpressionOrPatternSyntax expectedExpressionOrPattern,
-        string? expectedModifier)
-    {
-        var firstContentBuilder = new StringBuilder($"{actualExpression.WithoutTrivia()}; Expected: ");
-        if (expectedModifier != null)
-        {
-            firstContentBuilder.Append($"{expectedModifier} ");
-        }
-
-        if (expectedExpressionOrPattern is not ExpressionSyntax)
-        {
-            firstContentBuilder.Append($"{expectedExpressionOrPattern.WithoutTrivia()}; But was: ");
-        }
-
-        var firstContent = firstContentBuilder
-            .ToString()
-            .Replace("{", "{{")
-            .Replace("}", "}}")
-            .Replace(@"\", @"\\")
-            .Replace(@"""", @"\""");
-
-        var interpolatedStringContents = new List<InterpolatedStringContentSyntax>
-        {
-            InterpolatedStringText().WithTextToken(Token(
-                TriviaList(),
-                SyntaxKind.InterpolatedStringTextToken,
-                firstContent,
-                firstContent,
-                TriviaList()))
-        };
-
-        if (expectedExpressionOrPattern is ExpressionSyntax expectedExpression)
-        {
-            interpolatedStringContents.Add(Interpolation(expectedExpression));
-            interpolatedStringContents.Add(InterpolatedStringText().WithTextToken(Token(
-                TriviaList(),
-                SyntaxKind.InterpolatedStringTextToken,
-                "; But was: ",
-                "; But was: ",
-                TriviaList())));
-        }
-
-        interpolatedStringContents.Add(Interpolation(actualExpression.WithoutTrivia()));
-
-        return InterpolatedStringExpression(Token(SyntaxKind.InterpolatedStringStartToken))
-            .WithContents(List(interpolatedStringContents));
+        return new InterpolatedStringBuilder()
+            .AppendText("Expected: ")
+            .AppendSyntaxAsText(condition);
     }
 }

@@ -15,7 +15,7 @@ public partial class AssertTests
 
         Assert.That(
             exception.Message == "Expected: Throws a System.Exception; But was: No exception",
-            $"exception.Message; Expected: {"Expected: Throws a System.Exception; But was: No exception"}; But was: {exception.Message}");
+            $"exception.Message; Expected: Expected: Throws a System.Exception; But was: No exception; But was: {exception.Message}");
     }
 
     public void Throws_GivenActionThatThrowsExpectedException_DoesNotThrow()
@@ -38,6 +38,6 @@ public partial class AssertTests
             exception.Message.StartsWith(
                 "Expected: Throws a System.InvalidOperationException; But was: System.ArgumentNullException",
                 StringComparison.Ordinal),
-            $"exception.Message; Expected: starts with {"Expected: Throws a System.InvalidOperationException; But was: System.ArgumentNullException"}; But was: {exception.Message}");
+            $"exception.Message; Expected: starts with Expected: Throws a System.InvalidOperationException; But was: System.ArgumentNullException; But was: {exception.Message}");
     }
 }

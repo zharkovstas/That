@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\That\That.csproj" />
-    <ProjectReference Include="..\That.Analyzers\That.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\That.Analyzers\That.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>
