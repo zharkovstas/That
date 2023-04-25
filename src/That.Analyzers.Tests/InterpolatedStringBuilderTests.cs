@@ -35,9 +35,7 @@ public class InterpolatedStringBuilderTests
     public void GivenSyntaxAsText_EscapesIt()
     {
         var actual = new InterpolatedStringBuilder()
-            .AppendSyntaxAsText(LiteralExpression(
-                SyntaxKind.StringLiteralExpression,
-                Literal("test")))
+            .AppendSyntaxAsText(ParseExpression("\"test\""))
             .Build()
             .ToString();
 
@@ -57,9 +55,7 @@ public class InterpolatedStringBuilderTests
     public void GivenStringLiteralExpression_BuildsStringLiteral()
     {
         var actual = new InterpolatedStringBuilder()
-            .AppendExpression(LiteralExpression(
-                SyntaxKind.StringLiteralExpression,
-                Literal("test")))
+            .AppendExpression(ParseExpression("\"test\""))
             .Build()
             .ToString();
 

@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis;
-
 namespace That.Tests;
 
 public partial class AssertTests

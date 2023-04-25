@@ -48,7 +48,7 @@ public class SpecifyAssertionMessageCodeFix : CodeFixProvider
         var condition = invocation.ArgumentList.Arguments[0].Expression;
 
         var newArguments = invocation.ArgumentList.AddArguments(Argument(
-            GetMessage(condition).NormalizeWhitespace()
+            AssertionMessageProvider.Provide(condition).NormalizeWhitespace()
         ));
 
         var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
@@ -60,126 +60,5 @@ public class SpecifyAssertionMessageCodeFix : CodeFixProvider
         var newRoot = oldRoot.ReplaceNode(invocation.ArgumentList, newArguments);
 
         return document.WithSyntaxRoot(newRoot);
-    }
-
-    private static ExpressionSyntax GetMessage(ExpressionSyntax condition)
-    {
-        if (condition is BinaryExpressionSyntax binaryExpression)
-        {
-            switch ((SyntaxKind)binaryExpression.RawKind)
-            {
-                case SyntaxKind.EqualsExpression:
-                    return new InterpolatedStringBuilder()
-                        .AppendSyntaxAsText(binaryExpression.Left)
-                        .AppendText("; Expected: ")
-                        .AppendExpression(binaryExpression.Right)
-                        .AppendText("; But was: ")
-                        .AppendExpression(binaryExpression.Left);
-                case SyntaxKind.NotEqualsExpression:
-                    return new InterpolatedStringBuilder()
-                        .AppendSyntaxAsText(binaryExpression.Left)
-                        .AppendText("; Expected: not ")
-                        .AppendExpression(binaryExpression.Right)
-                        .AppendText("; But was: ")
-                        .AppendExpression(binaryExpression.Left);
-                case SyntaxKind.LessThanExpression:
-                case SyntaxKind.LessThanOrEqualExpression:
-                case SyntaxKind.GreaterThanExpression:
-                case SyntaxKind.GreaterThanOrEqualExpression:
-                    return new InterpolatedStringBuilder()
-                        .AppendSyntaxAsText(binaryExpression.Left)
-                        .AppendText($"; Expected: {binaryExpression.OperatorToken} ")
-                        .AppendExpression(binaryExpression.Right)
-                        .AppendText("; But was: ")
-                        .AppendExpression(binaryExpression.Left);
-                default:
-                    break;
-            }
-        }
-
-        if (condition is PrefixUnaryExpressionSyntax prefixUnaryExpression)
-        {
-            switch ((SyntaxKind)prefixUnaryExpression.RawKind)
-            {
-                case SyntaxKind.LogicalNotExpression:
-                    return new InterpolatedStringBuilder()
-                        .AppendText("Expected: ")
-                        .AppendSyntaxAsText(prefixUnaryExpression.Operand)
-                        .AppendText(" to be false");
-                default:
-                    break;
-            }
-        }
-
-        if (condition is InvocationExpressionSyntax invocationExpression
-            && invocationExpression.Expression is MemberAccessExpressionSyntax memberAccessExpression
-            && memberAccessExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-        {
-            if (invocationExpression.ArgumentList.Arguments.Count > 0)
-            {
-                var firstArgumentExpression = invocationExpression.ArgumentList.Arguments[0].Expression;
-
-                switch (memberAccessExpression.Name.ToString())
-                {
-                    case nameof(object.Equals):
-                    case nameof(Enumerable.SequenceEqual):
-                        return new InterpolatedStringBuilder()
-                            .AppendSyntaxAsText(memberAccessExpression.Expression)
-                            .AppendText("; Expected: ")
-                            .AppendExpression(firstArgumentExpression)
-                            .AppendText("; But was: ")
-                            .AppendExpression(memberAccessExpression.Expression);
-                    case nameof(string.StartsWith):
-                        return new InterpolatedStringBuilder()
-                            .AppendSyntaxAsText(memberAccessExpression.Expression)
-                            .AppendText("; Expected: starts with ")
-                            .AppendExpression(firstArgumentExpression)
-                            .AppendText("; But was: ")
-                            .AppendExpression(memberAccessExpression.Expression);
-                    case nameof(string.EndsWith):
-                        return new InterpolatedStringBuilder()
-                            .AppendSyntaxAsText(memberAccessExpression.Expression)
-                            .AppendText("; Expected: ends with ")
-                            .AppendExpression(firstArgumentExpression)
-                            .AppendText("; But was: ")
-                            .AppendExpression(memberAccessExpression.Expression);
-                    case nameof(string.Contains):
-                        return new InterpolatedStringBuilder()
-                            .AppendSyntaxAsText(memberAccessExpression.Expression)
-                            .AppendText("; Expected: contains ")
-                            .AppendExpression(firstArgumentExpression)
-                            .AppendText("; But was: ")
-                            .AppendExpression(memberAccessExpression.Expression);
-                    default:
-                        break;
-                }
-            }
-            else
-            {
-                switch (memberAccessExpression.Name.ToString())
-                {
-                    case nameof(Enumerable.Any):
-                        return new InterpolatedStringBuilder()
-                            .AppendSyntaxAsText(memberAccessExpression.Expression)
-                            .AppendText("; Expected: not <empty>; But was: <empty>");
-                    default:
-                        break;
-                }
-            }
-        }
-
-        if (condition is IsPatternExpressionSyntax isPatternExpression)
-        {
-            return new InterpolatedStringBuilder()
-                .AppendSyntaxAsText(isPatternExpression.Expression)
-                .AppendText("; Expected: ")
-                .AppendSyntaxAsText(isPatternExpression.Pattern)
-                .AppendText("; But was: ")
-                .AppendExpression(isPatternExpression.Expression);
-        }
-
-        return new InterpolatedStringBuilder()
-            .AppendText("Expected: ")
-            .AppendSyntaxAsText(condition);
     }
 }
