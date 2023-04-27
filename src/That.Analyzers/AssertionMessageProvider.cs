@@ -8,19 +8,24 @@ internal static partial class AssertionMessageProvider
 {
     internal static ExpressionSyntax Provide(ExpressionSyntax condition)
     {
+        return Provide(condition, negate: false);
+    }
+
+    private static ExpressionSyntax Provide(ExpressionSyntax condition, bool negate)
+    {
         return condition switch
         {
-            BinaryExpressionSyntax binaryExpression => Provide(binaryExpression),
-            PrefixUnaryExpressionSyntax prefixUnaryExpression => Provide(prefixUnaryExpression),
-            InvocationExpressionSyntax invocationExpression => Provide(invocationExpression),
-            CastExpressionSyntax castExpression => Provide(castExpression),
-            IsPatternExpressionSyntax isPatternExpression => Provide(isPatternExpression),
-            ParenthesizedExpressionSyntax parenthesizedExpression => Provide(parenthesizedExpression.Expression),
-            _ => ProvideDefault(condition),
+            BinaryExpressionSyntax binaryExpression => Provide(binaryExpression, negate),
+            PrefixUnaryExpressionSyntax prefixUnaryExpression => Provide(prefixUnaryExpression, negate),
+            InvocationExpressionSyntax invocationExpression => Provide(invocationExpression, negate),
+            CastExpressionSyntax castExpression => Provide(castExpression, negate),
+            IsPatternExpressionSyntax isPatternExpression => Provide(isPatternExpression, negate),
+            ParenthesizedExpressionSyntax parenthesizedExpression => Provide(parenthesizedExpression.Expression, negate),
+            _ => ProvideDefault(condition, negate),
         };
     }
 
-    private static ExpressionSyntax Provide(BinaryExpressionSyntax condition)
+    private static ExpressionSyntax Provide(BinaryExpressionSyntax condition, bool negate)
     {
         var builder = new InterpolatedStringBuilder()
             .AppendSyntaxAsText(condition.Left)
@@ -29,43 +34,53 @@ internal static partial class AssertionMessageProvider
         return (SyntaxKind)condition.RawKind switch
         {
             SyntaxKind.EqualsExpression => builder
+                .AppendText(negate ? "not " : "")
                 .AppendExpression(condition.Right)
                 .AppendText("; But was: ")
                 .AppendExpression(condition.Left),
             SyntaxKind.NotEqualsExpression => builder
-                .AppendText("not ")
+                .AppendText(negate ? "" : "not ")
                 .AppendExpression(condition.Right)
                 .AppendText("; But was: ")
                 .AppendExpression(condition.Left),
-            SyntaxKind.LessThanExpression
-                or SyntaxKind.LessThanOrEqualExpression
-                or SyntaxKind.GreaterThanExpression
-                or SyntaxKind.GreaterThanOrEqualExpression => builder
-                    .AppendText($"{condition.OperatorToken} ")
-                    .AppendExpression(condition.Right)
-                    .AppendText("; But was: ")
-                    .AppendExpression(condition.Left),
-            _ => ProvideDefault(condition),
+            SyntaxKind.LessThanExpression => builder
+                .AppendText(negate ? ">= " : "< ")
+                .AppendExpression(condition.Right)
+                .AppendText("; But was: ")
+                .AppendExpression(condition.Left),
+            SyntaxKind.LessThanOrEqualExpression => builder
+                .AppendText(negate ? "> " : "<= ")
+                .AppendExpression(condition.Right)
+                .AppendText("; But was: ")
+                .AppendExpression(condition.Left),
+            SyntaxKind.GreaterThanExpression => builder
+                .AppendText(negate ? "<= " : "> ")
+                .AppendExpression(condition.Right)
+                .AppendText("; But was: ")
+                .AppendExpression(condition.Left),
+            SyntaxKind.GreaterThanOrEqualExpression => builder
+                .AppendText(negate ? "< " : ">= ")
+                .AppendExpression(condition.Right)
+                .AppendText("; But was: ")
+                .AppendExpression(condition.Left),
+            _ => ProvideDefault(condition, negate),
         };
     }
 
-    private static ExpressionSyntax Provide(PrefixUnaryExpressionSyntax expression)
+    private static ExpressionSyntax Provide(PrefixUnaryExpressionSyntax expression, bool negate)
     {
         return (SyntaxKind)expression.RawKind switch
         {
-            SyntaxKind.LogicalNotExpression => new InterpolatedStringBuilder()
-                .AppendText("Expected: ")
-                .AppendSyntaxAsText(expression.Operand)
-                .AppendText(" to be false"),
-            _ => ProvideDefault(expression),
+            SyntaxKind.LogicalNotExpression => Provide(expression.Operand, !negate),
+            _ => ProvideDefault(expression, negate),
         };
     }
 
-    private static ExpressionSyntax Provide(InvocationExpressionSyntax expression)
+    private static ExpressionSyntax Provide(InvocationExpressionSyntax expression, bool negate)
     {
         if (expression.Expression is not IdentifierNameSyntax and not MemberAccessExpressionSyntax)
         {
-            return ProvideDefault(expression);
+            return ProvideDefault(expression, negate);
         }
 
         var methodName = expression.Expression switch
@@ -77,41 +92,56 @@ internal static partial class AssertionMessageProvider
 
         return methodName.ToString() switch
         {
-            nameof(object.Equals) => ProvideForEqualsCall(expression),
-            nameof(object.ReferenceEquals) => ProvideForReferenceEqualsCall(expression),
-            nameof(Enumerable.SequenceEqual) => ProvideForSequenceEqualCall(expression),
-            nameof(Enumerable.Any) => ProvideForAnyCall(expression),
-            nameof(string.StartsWith) => ProvideForStartsOrEndsWithCall(expression, "starts with"),
-            nameof(string.EndsWith) => ProvideForStartsOrEndsWithCall(expression, "ends with"),
-            nameof(string.Contains) => ProvideForContainsCall(expression),
-            _ => ProvideDefault(expression),
+            nameof(object.Equals) => ProvideForEqualsCall(expression, negate),
+            nameof(object.ReferenceEquals) => ProvideForReferenceEqualsCall(expression, negate),
+            nameof(Enumerable.SequenceEqual) => ProvideForSequenceEqualCall(expression, negate),
+            nameof(Enumerable.Any) => ProvideForAnyCall(expression, negate),
+            nameof(string.StartsWith) => ProvideForStartsOrEndsWithCall(
+                expression,
+                negate ? "does not start with" : "starts with",
+                negate),
+            nameof(string.EndsWith) => ProvideForStartsOrEndsWithCall(
+                expression,
+                negate ? "does not end with" : "ends with",
+                negate),
+            nameof(string.Contains) => ProvideForContainsCall(expression, negate),
+            _ => ProvideDefault(expression, negate),
         };
     }
 
-    private static ExpressionSyntax Provide(IsPatternExpressionSyntax condition)
+    private static ExpressionSyntax Provide(IsPatternExpressionSyntax condition, bool negate)
     {
         return new InterpolatedStringBuilder()
             .AppendSyntaxAsText(condition.Expression)
             .AppendText("; Expected: ")
+            .AppendText(negate ? "not " : "")
             .AppendSyntaxAsText(condition.Pattern)
             .AppendText("; But was: ")
             .AppendExpression(condition.Expression);
     }
 
-    private static ExpressionSyntax Provide(CastExpressionSyntax condition)
+    private static ExpressionSyntax Provide(CastExpressionSyntax condition, bool negate)
     {
         return condition.Type is PredefinedTypeSyntax predefinedTypeSyntax
             && predefinedTypeSyntax.Keyword.IsKind(SyntaxKind.BoolKeyword)
             ? new InterpolatedStringBuilder()
                 .AppendText("Expected: ")
+                .AppendText(negate ? "not " : "")
                 .AppendSyntaxAsText(condition.Expression)
-            : ProvideDefault(condition);
+            : ProvideDefault(condition, negate);
     }
 
-    private static ExpressionSyntax ProvideDefault(ExpressionSyntax condition)
+    private static ExpressionSyntax ProvideDefault(ExpressionSyntax condition, bool negate)
     {
-        return new InterpolatedStringBuilder()
+        var builder = new InterpolatedStringBuilder()
             .AppendText("Expected: ")
             .AppendSyntaxAsText(condition);
+
+        if (negate)
+        {
+            builder.AppendText(" to be false");
+        }
+
+        return builder;
     }
 }

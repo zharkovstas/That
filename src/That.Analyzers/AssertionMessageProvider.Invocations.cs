@@ -6,7 +6,7 @@ namespace That.Analyzers;
 
 internal static partial class AssertionMessageProvider
 {
-    private static ExpressionSyntax ProvideForEqualsCall(InvocationExpressionSyntax condition)
+    private static ExpressionSyntax ProvideForEqualsCall(InvocationExpressionSyntax condition, bool negate)
     {
         var arguments = condition.ArgumentList.Arguments;
 
@@ -16,6 +16,7 @@ internal static partial class AssertionMessageProvider
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(arguments[0].Expression)
                 .AppendText("; Expected: ")
+                .AppendText(negate ? "not " : "")
                 .AppendExpression(arguments[1].Expression)
                 .AppendText("; But was: ")
                 .AppendExpression(arguments[0].Expression);
@@ -23,7 +24,7 @@ internal static partial class AssertionMessageProvider
 
         if (condition.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
         {
-            return ProvideDefault(condition);
+            return ProvideDefault(condition, negate);
         }
 
         // actual.Equals(expected)
@@ -32,6 +33,7 @@ internal static partial class AssertionMessageProvider
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(memberAccessExpression.Expression)
                 .AppendText("; Expected: ")
+                .AppendText(negate ? "not " : "")
                 .AppendExpression(arguments[0].Expression)
                 .AppendText("; But was: ")
                 .AppendExpression(memberAccessExpression.Expression);
@@ -46,6 +48,7 @@ internal static partial class AssertionMessageProvider
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(memberAccessExpression.Expression)
                 .AppendText("; Expected: ")
+                .AppendText(negate ? "not " : "")
                 .AppendExpression(arguments[0].Expression)
                 .AppendText(" (")
                 .AppendSyntaxAsText(arguments[1].Expression)
@@ -62,6 +65,7 @@ internal static partial class AssertionMessageProvider
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(arguments[0].Expression)
                 .AppendText("; Expected: ")
+                .AppendText(negate ? "not " : "")
                 .AppendExpression(arguments[1].Expression)
                 .AppendText("; But was: ")
                 .AppendExpression(arguments[0].Expression);
@@ -73,6 +77,7 @@ internal static partial class AssertionMessageProvider
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(arguments[0].Expression)
                 .AppendText("; Expected: ")
+                .AppendText(negate ? "not " : "")
                 .AppendExpression(arguments[1].Expression)
                 .AppendText(" (")
                 .AppendSyntaxAsText(arguments[2].Expression)
@@ -80,10 +85,10 @@ internal static partial class AssertionMessageProvider
                 .AppendExpression(arguments[0].Expression);
         }
 
-        return ProvideDefault(condition);
+        return ProvideDefault(condition, negate);
     }
 
-    private static ExpressionSyntax ProvideForReferenceEqualsCall(InvocationExpressionSyntax condition)
+    private static ExpressionSyntax ProvideForReferenceEqualsCall(InvocationExpressionSyntax condition, bool negate)
     {
         var arguments = condition.ArgumentList.Arguments;
 
@@ -92,7 +97,7 @@ internal static partial class AssertionMessageProvider
         {
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(arguments[0].Expression)
-                .AppendText("; Expected: same as ")
+                .AppendText(negate ? "; Expected: not same as " : "; Expected: same as ")
                 .AppendExpression(arguments[1].Expression)
                 .AppendText("; But was: ")
                 .AppendExpression(arguments[0].Expression);
@@ -100,7 +105,7 @@ internal static partial class AssertionMessageProvider
 
         if (condition.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
         {
-            return ProvideDefault(condition);
+            return ProvideDefault(condition, negate);
         }
 
         // actual.ReferenceEquals(expected)
@@ -108,7 +113,7 @@ internal static partial class AssertionMessageProvider
         {
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(memberAccessExpression.Expression)
-                .AppendText("; Expected: same as ")
+                .AppendText(negate ? "; Expected: not same as " : "; Expected: same as ")
                 .AppendExpression(arguments[0].Expression)
                 .AppendText("; But was: ")
                 .AppendExpression(memberAccessExpression.Expression);
@@ -119,20 +124,20 @@ internal static partial class AssertionMessageProvider
         {
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(arguments[0].Expression)
-                .AppendText("; Expected: same as ")
+                .AppendText(negate ? "; Expected: not same as " : "; Expected: same as ")
                 .AppendExpression(arguments[1].Expression)
                 .AppendText("; But was: ")
                 .AppendExpression(arguments[0].Expression);
         }
 
-        return ProvideDefault(condition);
+        return ProvideDefault(condition, negate);
     }
 
-    private static ExpressionSyntax ProvideForSequenceEqualCall(InvocationExpressionSyntax condition)
+    private static ExpressionSyntax ProvideForSequenceEqualCall(InvocationExpressionSyntax condition, bool negate)
     {
         if (condition.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
         {
-            return ProvideDefault(condition);
+            return ProvideDefault(condition, negate);
         }
 
         var arguments = condition.ArgumentList.Arguments;
@@ -143,6 +148,7 @@ internal static partial class AssertionMessageProvider
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(memberAccessExpression.Expression)
                 .AppendText("; Expected: ")
+                .AppendText(negate ? "not " : "")
                 .AppendExpression(arguments[0].Expression)
                 .AppendText("; But was: ")
                 .AppendExpression(memberAccessExpression.Expression);
@@ -154,25 +160,26 @@ internal static partial class AssertionMessageProvider
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(arguments[0].Expression)
                 .AppendText("; Expected: ")
+                .AppendText(negate ? "not " : "")
                 .AppendExpression(arguments[1].Expression)
                 .AppendText("; But was: ")
                 .AppendExpression(arguments[0].Expression);
         }
 
-        return ProvideDefault(condition);
+        return ProvideDefault(condition, negate);
     }
 
-    private static ExpressionSyntax ProvideForStartsOrEndsWithCall(InvocationExpressionSyntax condition, string predicate)
+    private static ExpressionSyntax ProvideForStartsOrEndsWithCall(InvocationExpressionSyntax condition, string predicate, bool negate)
     {
         if (condition.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
         {
-            return ProvideDefault(condition);
+            return ProvideDefault(condition, negate);
         }
 
         var arguments = condition.ArgumentList.Arguments;
         if (arguments.Count == 0 || arguments.Count > 3)
         {
-            return ProvideDefault(condition);
+            return ProvideDefault(condition, negate);
         }
 
         var builder = new InterpolatedStringBuilder();
@@ -214,14 +221,14 @@ internal static partial class AssertionMessageProvider
                 .AppendExpression(memberAccessExpression.Expression);
         }
 
-        return ProvideDefault(condition);
+        return ProvideDefault(condition, negate);
     }
 
-    private static ExpressionSyntax ProvideForContainsCall(InvocationExpressionSyntax condition)
+    private static ExpressionSyntax ProvideForContainsCall(InvocationExpressionSyntax condition, bool negate)
     {
         if (condition.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
         {
-            return ProvideDefault(condition);
+            return ProvideDefault(condition, negate);
         }
 
         var arguments = condition.ArgumentList.Arguments;
@@ -231,20 +238,20 @@ internal static partial class AssertionMessageProvider
         {
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(memberAccessExpression.Expression)
-                .AppendText("; Expected: contains ")
+                .AppendText(negate ? "; Expected: does not contain " : "; Expected: contains ")
                 .AppendExpression(arguments[0].Expression)
                 .AppendText("; But was: ")
                 .AppendExpression(memberAccessExpression.Expression);
         }
 
-        return ProvideDefault(condition);
+        return ProvideDefault(condition, negate);
     }
 
-    private static ExpressionSyntax ProvideForAnyCall(InvocationExpressionSyntax condition)
+    private static ExpressionSyntax ProvideForAnyCall(InvocationExpressionSyntax condition, bool negate)
     {
         if (condition.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
         {
-            return ProvideDefault(condition);
+            return ProvideDefault(condition, negate);
         }
 
         var arguments = condition.ArgumentList.Arguments;
@@ -254,7 +261,9 @@ internal static partial class AssertionMessageProvider
         {
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(memberAccessExpression.Expression)
-                .AppendText("; Expected: not <empty>; But was: <empty>");
+                .AppendText(negate
+                    ? "; Expected: <empty>; But was: not <empty>"
+                    : "; Expected: not <empty>; But was: <empty>");
         }
 
         // Enumerable.Any(actual)
@@ -262,10 +271,12 @@ internal static partial class AssertionMessageProvider
         {
             return new InterpolatedStringBuilder()
                 .AppendSyntaxAsText(arguments[0].Expression)
-                .AppendText("; Expected: not <empty>; But was: <empty>");
+                .AppendText(negate
+                    ? "; Expected: <empty>; But was: not <empty>"
+                    : "; Expected: not <empty>; But was: <empty>");
         }
 
-        return ProvideDefault(condition);
+        return ProvideDefault(condition, negate);
     }
 
     private static bool IsStringComparison(ExpressionSyntax expression)

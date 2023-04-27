@@ -19,12 +19,14 @@ public class AssertionMessageProviderTests
             ("2 == expected", "$\"2; Expected: {expected}; But was: 2\""),
             ("2 == 3", "\"2; Expected: 3; But was: 2\""),
             ("(2 == 3)", "\"2; Expected: 3; But was: 2\""),
+            ("!(2 == 3)", "\"2; Expected: not 3; But was: 2\""),
             ("2 != 3", "\"2; Expected: not 3; But was: 2\""),
             ("2 < 3", "\"2; Expected: < 3; But was: 2\""),
             ("2 <= 3", "\"2; Expected: <= 3; But was: 2\""),
             ("2 > 3", "\"2; Expected: > 3; But was: 2\""),
             ("2 >= 3", "\"2; Expected: >= 3; But was: 2\""),
             ("!actual", "\"Expected: actual to be false\""),
+            ("!!actual", "\"Expected: actual\""),
             ("2.Equals(3)", "\"2; Expected: 3; But was: 2\""),
             ("Equals(2, 3)", "\"2; Expected: 3; But was: 2\""),
             ("string.Equals(actual, expected)", "$\"actual; Expected: {expected}; But was: {actual}\""),
@@ -47,6 +49,8 @@ public class AssertionMessageProviderTests
             ("actual.Contains(expected)", "$\"actual; Expected: contains {expected}; But was: {actual}\""),
             ("actual.Any()", "\"actual; Expected: not <empty>; But was: <empty>\""),
             ("Enumerable.Any(actual)", "\"actual; Expected: not <empty>; But was: <empty>\""),
+            ("!actual.Any()", "\"actual; Expected: <empty>; But was: not <empty>\""),
+            ("!Enumerable.Any(actual)", "\"actual; Expected: <empty>; But was: not <empty>\""),
         };
 
         foreach (var (condition, expectedMessage) in cases)
