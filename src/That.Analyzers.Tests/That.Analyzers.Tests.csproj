@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="ZeroUnit" Version="1.0.1" ReferenceOutputAssembly="false"
-      OutputItemType="Analyzer" />
+      OutputItemType="Analyzer" ExcludeAssets="all" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis.CSharp;
-
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace That.Analyzers.Tests;

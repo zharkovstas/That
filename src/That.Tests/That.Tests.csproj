@@ -11,11 +11,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\That\That.csproj" />
-    <ProjectReference Include="..\That.Analyzers\That.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\That.Analyzers\That.Analyzers.csproj"
+      ReferenceOutputAssembly="false" OutputItemType="Analyzer" ExcludeAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ZeroUnit" Version="1.0.1" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <PackageReference Include="ZeroUnit" Version="1.0.1" ReferenceOutputAssembly="false"
+      OutputItemType="Analyzer" ExcludeAssets="all" />
   </ItemGroup>
 
 </Project>
