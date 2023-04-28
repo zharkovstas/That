@@ -276,6 +276,78 @@ internal static partial class AssertionMessageProvider
                     : "; Expected: not <empty>; But was: <empty>");
         }
 
+        // actual.Any(IsCorrect)
+        // actual.Any(x => x > 0)
+        if (arguments.Count == 1 && !IsEnumerableType(memberAccessExpression.Expression))
+        {
+            return new InterpolatedStringBuilder()
+                .AppendSyntaxAsText(memberAccessExpression.Expression)
+                .AppendText(negate
+                    ? "; Expected: all items do not satisfy "
+                    : "; Expected: at least one item satisfies ")
+                .AppendSyntaxAsText(arguments[0].Expression)
+                .AppendText(negate
+                    ? "; But was: some items satisfy"
+                    : "; But was: none satisfy");
+        }
+
+        // Enumerable.Any(actual, IsCorrect)
+        // Enumerable.Any(actual, x => x > 0)
+        if (arguments.Count == 2 && IsEnumerableType(memberAccessExpression.Expression))
+        {
+            return new InterpolatedStringBuilder()
+                .AppendSyntaxAsText(arguments[0].Expression)
+                .AppendText(negate
+                    ? "; Expected: all items do not satisfy "
+                    : "; Expected: at least one item satisfies ")
+                .AppendSyntaxAsText(arguments[1].Expression)
+                .AppendText(negate
+                    ? "; But was: some items satisfy"
+                    : "; But was: none satisfy");
+        }
+
+        return ProvideDefault(condition, negate);
+    }
+
+    private static ExpressionSyntax ProvideForAllCall(InvocationExpressionSyntax condition, bool negate)
+    {
+        if (condition.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        {
+            return ProvideDefault(condition, negate);
+        }
+
+        var arguments = condition.ArgumentList.Arguments;
+
+        // actual.All(IsCorrect)
+        // actual.All(x => x > 0)
+        if (arguments.Count == 1 && !IsEnumerableType(memberAccessExpression.Expression))
+        {
+            return new InterpolatedStringBuilder()
+                .AppendSyntaxAsText(memberAccessExpression.Expression)
+                .AppendText(negate
+                    ? "; Expected: some items do not satisfy "
+                    : "; Expected: all items satisfy ")
+                .AppendSyntaxAsText(arguments[0].Expression)
+                .AppendText(negate
+                    ? "; But was: all items satisfy"
+                    : "; But was: some items do not satisfy");
+        }
+
+        // Enumerable.All(actual, IsCorrect)
+        // Enumerable.All(actual, x => x > 0)
+        if (arguments.Count == 2 && IsEnumerableType(memberAccessExpression.Expression))
+        {
+            return new InterpolatedStringBuilder()
+                .AppendSyntaxAsText(arguments[0].Expression)
+                .AppendText(negate
+                    ? "; Expected: some items do not satisfy "
+                    : "; Expected: all items satisfy ")
+                .AppendSyntaxAsText(arguments[1].Expression)
+                .AppendText(negate
+                    ? "; But was: all items satisfy"
+                    : "; But was: some items do not satisfy");
+        }
+
         return ProvideDefault(condition, negate);
     }
 

@@ -51,6 +51,14 @@ public class AssertionMessageProviderTests
             ("Enumerable.Any(actual)", "\"actual; Expected: not <empty>; But was: <empty>\""),
             ("!actual.Any()", "\"actual; Expected: <empty>; But was: not <empty>\""),
             ("!Enumerable.Any(actual)", "\"actual; Expected: <empty>; But was: not <empty>\""),
+            ("actual.Any(IsEven)", "\"actual; Expected: at least one item satisfies IsEven; But was: none satisfy\""),
+            ("Enumerable.Any(actual, IsEven)", "\"actual; Expected: at least one item satisfies IsEven; But was: none satisfy\""),
+            ("!actual.Any(x => x > 0)", "\"actual; Expected: all items do not satisfy x => x > 0; But was: some items satisfy\""),
+            ("!Enumerable.Any(actual, IsEven)", "\"actual; Expected: all items do not satisfy IsEven; But was: some items satisfy\""),
+            ("actual.All(IsEven)", "\"actual; Expected: all items satisfy IsEven; But was: some items do not satisfy\""),
+            ("Enumerable.All(actual, IsEven)", "\"actual; Expected: all items satisfy IsEven; But was: some items do not satisfy\""),
+            ("!actual.All(x => x > 0)", "\"actual; Expected: some items do not satisfy x => x > 0; But was: all items satisfy\""),
+            ("!Enumerable.All(actual, IsEven)", "\"actual; Expected: some items do not satisfy IsEven; But was: all items satisfy\""),
         };
 
         foreach (var (condition, expectedMessage) in cases)

@@ -96,6 +96,7 @@ internal static partial class AssertionMessageProvider
             nameof(object.ReferenceEquals) => ProvideForReferenceEqualsCall(expression, negate),
             nameof(Enumerable.SequenceEqual) => ProvideForSequenceEqualCall(expression, negate),
             nameof(Enumerable.Any) => ProvideForAnyCall(expression, negate),
+            nameof(Enumerable.All) => ProvideForAllCall(expression, negate),
             nameof(string.StartsWith) => ProvideForStartsOrEndsWithCall(
                 expression,
                 negate ? "does not start with" : "starts with",
