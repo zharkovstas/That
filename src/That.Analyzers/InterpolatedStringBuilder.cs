@@ -24,13 +24,26 @@ internal class InterpolatedStringBuilder
 
     internal InterpolatedStringBuilder AppendExpression(ExpressionSyntax expression)
     {
-        object content = expression switch
+        switch (expression)
         {
-            LiteralExpressionSyntax literal => literal.Token.ValueText,
-            _ => expression
-        };
+            case LiteralExpressionSyntax literal:
+                contents.Add(literal.Token.ValueText);
+                break;
+            case ParenthesizedExpressionSyntax parenthesizedExpression:
+                return AppendExpression(parenthesizedExpression.Expression);
+            case InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax memberAccessExpression } invocationExpression:
+                if (memberAccessExpression.Name.ToString() == nameof(object.ToString)
+                    && invocationExpression.ArgumentList.Arguments.Count == 0)
+                {
+                    return AppendExpression(memberAccessExpression.Expression);
+                }
+                contents.Add(expression);
+                break;
+            default:
+                contents.Add(expression);
+                break;
+        }
 
-        contents.Add(content);
         return this;
     }
 

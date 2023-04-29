@@ -6,16 +6,16 @@ public class InterpolatedStringBuilderTests
 {
     public void GivenNothing_BuildsEmptyStringLiteral()
     {
-        var actual = new InterpolatedStringBuilder().Build().ToString();
+        var actual = new InterpolatedStringBuilder().Build();
 
-        Assert.That(actual == "\"\"", $"actual; Expected: \"\"; But was: {actual}");
+        Assert.That(actual.ToString() == "\"\"", $"actual.ToString(); Expected: \"\"; But was: {actual}");
     }
 
     public void GivenSingleText_BuildsStringLiteral()
     {
-        var actual = new InterpolatedStringBuilder().AppendText("test").Build().ToString();
+        var actual = new InterpolatedStringBuilder().AppendText("test").Build();
 
-        Assert.That(actual == "\"test\"", $"actual; Expected: \"test\"; But was: {actual}");
+        Assert.That(actual.ToString() == "\"test\"", $"actual.ToString(); Expected: \"test\"; But was: {actual}");
     }
 
     public void GivenMultipleTexts_ConcatenatesThem()
@@ -24,40 +24,36 @@ public class InterpolatedStringBuilderTests
             .AppendText("1")
             .AppendText("2")
             .AppendText("3")
-            .Build()
-            .ToString();
+            .Build();
 
-        Assert.That(actual == "\"123\"", $"actual; Expected: \"123\"; But was: {actual}");
+        Assert.That(actual.ToString() == "\"123\"", $"actual.ToString(); Expected: \"123\"; But was: {actual}");
     }
 
     public void GivenSyntaxAsText_EscapesIt()
     {
         var actual = new InterpolatedStringBuilder()
             .AppendSyntaxAsText(ParseExpression("\"test\""))
-            .Build()
-            .ToString();
+            .Build();
 
-        Assert.That(actual == "\"\\\"test\\\"\"", $"actual; Expected: \"\\\"test\\\"\"; But was: {actual}");
+        Assert.That(actual.ToString() == "\"\\\"test\\\"\"", $"actual.ToString(); Expected: \"\\\"test\\\"\"; But was: {actual}");
     }
 
     public void GivenExpression_BuildsInterpolatedString()
     {
         var actual = new InterpolatedStringBuilder()
             .AppendExpression(IdentifierName("test"))
-            .Build()
-            .ToString();
+            .Build();
 
-        Assert.That(actual == "$\"{test}\"", $"actual; Expected: {"$\"{test}\""}; But was: {actual}");
+        Assert.That(actual.ToString() == "$\"{test}\"", $"actual.ToString(); Expected: $\"{{test}}\"; But was: {actual}");
     }
 
     public void GivenStringLiteralExpression_BuildsStringLiteral()
     {
         var actual = new InterpolatedStringBuilder()
             .AppendExpression(ParseExpression("\"test\""))
-            .Build()
-            .ToString();
+            .Build();
 
-        Assert.That(actual == "\"test\"", $"actual; Expected: \"test\"; But was: {actual}");
+        Assert.That(actual.ToString() == "\"test\"", $"actual.ToString(); Expected: \"test\"; But was: {actual}");
     }
 
     public void GivenTextAndExpression_EscapesText()
@@ -65,9 +61,26 @@ public class InterpolatedStringBuilderTests
         var actual = new InterpolatedStringBuilder()
             .AppendText("\"{}\\")
             .AppendExpression(IdentifierName("test"))
-            .Build()
-            .ToString();
+            .Build();
 
-        Assert.That(actual == "$\"\\\"{{}}\\\\{test}\"", $"actual; Expected: {"$\"\\\"{{}}\\\\{test}\""}; But was: {actual}");
+        Assert.That(actual.ToString() == "$\"\\\"{{}}\\\\{test}\"", $"actual.ToString(); Expected: $\"\\\"{{{{}}}}\\\\{{test}}\"; But was: {actual}");
+    }
+
+    public void GivenToStringExpression_RemovesToString()
+    {
+        var actual = new InterpolatedStringBuilder()
+            .AppendExpression(ParseExpression("test.ToString()"))
+            .Build();
+
+        Assert.That(actual.ToString() == "$\"{test}\"", $"actual.ToString(); Expected: $\"{{test}}\"; But was: {actual}");
+    }
+
+    public void GivenParenthesizedExpression_RemovesParentheses()
+    {
+        var actual = new InterpolatedStringBuilder()
+            .AppendExpression(ParseExpression("(test)"))
+            .Build();
+
+        Assert.That(actual.ToString() == "$\"{test}\"", $"actual.ToString(); Expected: $\"{{test}}\"; But was: {actual}");
     }
 }
