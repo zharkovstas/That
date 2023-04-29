@@ -69,4 +69,38 @@ public static class Assert
 
         throw new AssertionException($"Expected: Throws a {typeof(TException).FullName}; But was: No exception");
     }
+
+    /// <summary>
+    /// Checks that <paramref name="action"/> throws an exception of type <typeparamref name="TException"/> when called
+    /// </summary>
+    /// <typeparam name="TException">the type of the expected exception</typeparam>
+    /// <param name="action">the action to call</param>
+    /// <returns>The thrown exception</returns>
+    /// <exception cref="AssertionException">
+    /// Thrown when <paramref name="action"/> does not throw an exception of the expected type
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="action"/> is null
+    /// </exception>
+    public static async Task<TException> ThrowsAsync<TException>(Func<Task> action) where TException : Exception
+    {
+        if (action == null) throw new ArgumentNullException(nameof(action));
+
+        try
+        {
+            await action().ConfigureAwait(false);
+        }
+        catch (TException expectedException)
+        {
+            return expectedException;
+        }
+        catch (Exception unexpectedException)
+        {
+            throw new AssertionException(
+                $"Expected: Throws a {typeof(TException).FullName}; But was: {unexpectedException}",
+                unexpectedException);
+        }
+
+        throw new AssertionException($"Expected: Throws a {typeof(TException).FullName}; But was: No exception");
+    }
 }
