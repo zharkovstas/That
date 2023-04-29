@@ -7,6 +7,16 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <PackageId>That.Analyzers</PackageId>
+    <Authors>zharkovstas</Authors>
+    <Description>Analyzers for That assertion library</Description>
+    <PackageProjectUrl>https://github.com/zharkovstas/That</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/zharkovstas/That</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <developmentDependency>true</developmentDependency>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +25,13 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="That.Analyzers.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs"
+      Visible="false" />
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
