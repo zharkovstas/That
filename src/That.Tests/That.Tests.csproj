@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ZeroUnit" Version="1.0.1" ReferenceOutputAssembly="false"
+    <PackageReference Include="ZeroUnit" Version="1.1.0" ReferenceOutputAssembly="false"
       OutputItemType="Analyzer" ExcludeAssets="all" />
   </ItemGroup>
 

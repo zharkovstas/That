@@ -112,13 +112,24 @@ internal static partial class AssertionMessageProvider
 
     private static ExpressionSyntax Provide(IsPatternExpressionSyntax condition, bool negate)
     {
-        return new InterpolatedStringBuilder()
-            .AppendSyntaxAsText(condition.Expression)
-            .AppendText("; Expected: ")
-            .AppendText(negate ? "not " : "")
-            .AppendSyntaxAsText(condition.Pattern)
-            .AppendText("; But was: ")
-            .AppendExpression(condition.Expression);
+        var builder = new InterpolatedStringBuilder()
+                .AppendSyntaxAsText(condition.Expression)
+                .AppendText("; Expected: ")
+                .AppendText(negate ? "not " : "")
+                .AppendSyntaxAsText(condition.Pattern)
+                .AppendText("; But was: ");
+
+        if (!negate && condition.Pattern is UnaryPatternSyntax { Pattern: ConstantPatternSyntax { Expression: LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NullLiteralExpression } } })
+        {
+            return builder.AppendText("null");
+        }
+
+        if (negate && condition.Pattern is ConstantPatternSyntax { Expression: LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NullLiteralExpression } })
+        {
+            return builder.AppendText("null");
+        }
+
+        return builder.AppendExpression(condition.Expression);
     }
 
     private static ExpressionSyntax Provide(CastExpressionSyntax condition, bool negate)
