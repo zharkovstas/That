@@ -351,6 +351,29 @@ internal static partial class AssertionMessageProvider
         return ProvideDefault(condition, negate);
     }
 
+    private static ExpressionSyntax ProvideForFloatingPointNumberStaticPredicateCall(InvocationExpressionSyntax condition, string expected, bool negate)
+    {
+        if (condition.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        {
+            return ProvideDefault(condition, negate);
+        }
+
+        var arguments = condition.ArgumentList.Arguments;
+
+        // double.*(actual)
+        // float.*(actual)
+        if (arguments.Count == 1
+            && (IsDoubleType(memberAccessExpression.Expression) || IsFloatType(memberAccessExpression.Expression)))
+        {
+            return new InterpolatedStringBuilder()
+                .AppendSyntaxAsText(arguments[0].Expression)
+                .AppendText($"; Expected: {expected}; But was: ")
+                .AppendExpression(arguments[0].Expression);
+        }
+
+        return ProvideDefault(condition, negate);
+    }
+
     private static bool IsStringComparison(ExpressionSyntax expression)
     {
         return expression is MemberAccessExpressionSyntax memberAccessExpression
@@ -366,6 +389,16 @@ internal static partial class AssertionMessageProvider
     private static bool IsObjectType(ExpressionSyntax expression)
     {
         return IsKeywordType(expression, SyntaxKind.ObjectKeyword);
+    }
+
+    private static bool IsDoubleType(ExpressionSyntax expression)
+    {
+        return IsKeywordType(expression, SyntaxKind.DoubleKeyword);
+    }
+
+    private static bool IsFloatType(ExpressionSyntax expression)
+    {
+        return IsKeywordType(expression, SyntaxKind.FloatKeyword);
     }
 
     private static bool IsEnumerableType(ExpressionSyntax expression)

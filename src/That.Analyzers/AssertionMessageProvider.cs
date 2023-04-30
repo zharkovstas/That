@@ -106,6 +106,22 @@ internal static partial class AssertionMessageProvider
                 negate ? "does not end with" : "ends with",
                 negate),
             nameof(string.Contains) => ProvideForContainsCall(expression, negate),
+            nameof(double.IsNaN) => ProvideForFloatingPointNumberStaticPredicateCall(
+                expression,
+                negate ? "not a NaN" : "NaN",
+                negate),
+            nameof(double.IsInfinity) => ProvideForFloatingPointNumberStaticPredicateCall(
+                expression,
+                negate ? "not an infinity" : "infinity",
+                negate),
+            nameof(double.IsNegativeInfinity) => ProvideForFloatingPointNumberStaticPredicateCall(
+                expression,
+                negate ? "not the negative infinity" : "negative infinity",
+                negate),
+            nameof(double.IsPositiveInfinity) => ProvideForFloatingPointNumberStaticPredicateCall(
+                expression,
+                negate ? "not the positive infinity" : "positive infinity",
+                negate),
             _ => ProvideDefault(expression, negate),
         };
     }

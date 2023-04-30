@@ -66,6 +66,13 @@ public class AssertionMessageProviderTests
             ("Enumerable.All(actual, IsEven)", "\"actual; Expected: all items satisfy IsEven; But was: some items do not satisfy\""),
             ("!actual.All(x => x > 0)", "\"actual; Expected: some items do not satisfy x => x > 0; But was: all items satisfy\""),
             ("!Enumerable.All(actual, IsEven)", "\"actual; Expected: some items do not satisfy IsEven; But was: all items satisfy\""),
+            ("double.IsNaN(actual)", "$\"actual; Expected: NaN; But was: {actual}\""),
+            ("!double.IsNaN(actual)", "$\"actual; Expected: not a NaN; But was: {actual}\""),
+            ("float.IsNaN(actual)", "$\"actual; Expected: NaN; But was: {actual}\""),
+            ("!float.IsNaN(actual)", "$\"actual; Expected: not a NaN; But was: {actual}\""),
+            ("double.IsInfinity(actual)", "$\"actual; Expected: infinity; But was: {actual}\""),
+            ("!double.IsPositiveInfinity(actual)", "$\"actual; Expected: not the positive infinity; But was: {actual}\""),
+            ("float.IsNegativeInfinity(actual)", "$\"actual; Expected: negative infinity; But was: {actual}\""),
         };
 
         foreach (var (condition, expectedMessage) in cases)
