@@ -6,7 +6,7 @@ public class AssertionMessageProviderTests
 {
     public void Provide_ReturnsMessageExpression()
     {
-        var cases = new[]
+        var cases = new (string Condition, string ExpectedMessage)[]
         {
             ("true", "\"Expected: true\""),
             ("false", "\"Expected: false\""),
@@ -75,12 +75,17 @@ public class AssertionMessageProviderTests
             ("float.IsNegativeInfinity(actual)", "$\"actual; Expected: negative infinity; But was: {actual}\""),
         };
 
-        foreach (var (condition, expectedMessage) in cases)
-        {
-            var actualMessage = AssertionMessageProvider.Provide(SyntaxFactory.ParseExpression(condition));
-            Assert.That(
-                actualMessage.ToString() == expectedMessage,
-                $"message for {condition}; Expected: {expectedMessage}; But was: {actualMessage}");
-        }
+        Parallel.ForEach(
+            cases,
+            x =>
+            {
+                var (condition, expectedMessage) = x;
+
+                var actualMessage = AssertionMessageProvider.Provide(SyntaxFactory.ParseExpression(condition));
+
+                Assert.That(
+                    actualMessage.ToString() == expectedMessage,
+                    $"message for {condition}; Expected: {expectedMessage}; But was: {actualMessage}");
+            });
     }
 }
